@@ -5,6 +5,7 @@
   #
   Feature: Public Portal - testing the different components of the search feature
 
+    //Refactor complete
     Scenario: TC_001
       When the user clicks 'Start search' button
       And the user selects yes
@@ -35,7 +36,7 @@
       When the user clicks 'Start search' button
       And the user selects No
       And the user selects Continue
-      And the user selects 'subsidyobjective' Select all
+      And the user selects Select all for 'Purpose'
       And the user selects Continue
       And the user selects a spending sector
       And the user selects Continue
@@ -50,9 +51,9 @@
       When the user clicks 'Start search' button
       And the user selects No
       And the user selects Continue
-      And the user selects 'subsidyobjective' Select all
+      And the user selects Select all for 'Purpose'
       And the user selects Continue
-      And the user selects 'spendingsector' Select all
+      And the user selects Select all for 'Sector'
       And the user selects Continue
       And the user selects a subsidy type
       And the user selects Continue
@@ -66,12 +67,11 @@
       When the user clicks 'Start search' button
       And the user selects No
       And the user selects Continue
-#      And the user selects 'subsidyobjective' Select all
-      And the user selects 'Select all' for subsidy 'Purpose'
+      And the user selects Select all for 'Purpose'
       And the user selects Continue
-      And the user selects 'spendingsector' Select all
+      And the user selects Select all for 'Sector'
       And the user selects Continue
-      And the user selects 'subsidyinstrument' Select all
+      And the user selects Select all for 'Type'
       And the user selects Continue
       And the user selects 'Yes' for award period
       And the user inputs valid dates

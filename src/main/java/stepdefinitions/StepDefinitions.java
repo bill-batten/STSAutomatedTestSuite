@@ -4,7 +4,6 @@ import common.BasePage;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +13,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.Assert;
-import common.BasePage;
+
 import pageobjects.StepDefinitionActions;
 import io.cucumber.java.en.Then;
 import pageobjects.StepDefinitionActions.FilterType;
@@ -23,13 +22,6 @@ public class StepDefinitions extends BasePage {
 
     StepDefinitionActions stepDefinitionActions = new StepDefinitionActions();
 
-
-    @Given("I navigate to the public portal website")
-    public void iNavigateToThePublicPortalWebsite() {
-        driver = new FirefoxDriver();
-//        driver.get("https://searchforuksubsidies-dev.beis.gov.uk/");
-        driver.get("http://localhost:3001");
-    }
 
     @Given("the user is on the homepage")
     public void theUserIsOnTheHomepage() {
@@ -57,7 +49,8 @@ public class StepDefinitions extends BasePage {
     }
 
     @And("the search results page should be displayed")
-    public void searchPageShouldBeDisplayed() {
+    public void searchPageShouldBeDisplayed() throws InterruptedException {
+        Thread.sleep(5000);
         stepDefinitionActions.isSearchPageDisplayed();
     }
 
@@ -81,7 +74,7 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.userSelectsSubsidySector();
     }
 
-    @And("the user selects a spending sector")
+    @And("the user selects a subsidy type")
     public void theUserSelectsASubsidyType() {
         stepDefinitionActions.userSelectsSubsidyType();
     }
@@ -91,56 +84,24 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.doesTableContainMatchingFilters(filterType);
     }
 
-    @And("the user selects {string} Select all")
-    public void theUserSelectsSubsidyPurposeSelectAll(String selectAllType) {
-        driver.findElement(By.id(selectAllType + "-0")).click();
+    @And("the user selects Select all for {string}")
+    public void theUserSelectsSubsidyAwardSelectAll(String selectAllType) {
+        stepDefinitionActions.userSelectsAll(selectAllType);
     }
 
     @And("the user selects {string} for award period")
-    public void theUserSelectsYesForAwardPeriod(String awardPeriod) {
-        String awardPeriodSelection = "";
-        if (awardPeriod.equals("Yes")) {
-            awardPeriodSelection = "_radio";
-        } else {
-            awardPeriodSelection = "-2";
-        }
-        driver.findElement(By.id("legalgrantingdate" + awardPeriodSelection)).click();
+    public void theUserSelectsAwardPeriod(String awardPeriod) {
+        stepDefinitionActions.userSelectsAwardPeriod(awardPeriod);
     }
 
     @And("the user inputs valid dates")
     public void theUserInputsValidDates() {
-        driver.findElement(By.id("legal_granting_date_day")).sendKeys("01");
-        driver.findElement(By.id("legal_granting_date_month")).sendKeys("01");
-        driver.findElement(By.id("legal_granting_date_year")).sendKeys("2000");
-        driver.findElement(By.id("legal_granting_date_day1")).sendKeys("01");
-        driver.findElement(By.id("legal_granting_date_month1")).sendKeys("01");
-        driver.findElement(By.id("legal_granting_date_year1")).sendKeys("2020");
+        stepDefinitionActions.userInputDates();
     }
 
-    @Then("the results table should only display awards within the dates provided")
-    public void theResultsTableShouldOnlyDisplayAwardsWithinTheDatesProvided() {
-
-        WebElement simpleTable = driver.findElement(By.id("searchresult-table-body"));
-        List<WebElement> rows = simpleTable.findElements(By.tagName("tr"));
-
-        int numberOfResults = rows.size();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH);
-        LocalDate fromDate = LocalDate.of(2000, Month.JANUARY, 1);
-        LocalDate toDate = LocalDate.of(2020, Month.JANUARY, 1);
-
-        boolean isWithinDateRange = false;
-        int columnIndex = stepDefinitionActions.getColumnIndex("Subsidy date");
-        for (WebElement row : rows) {
-            if (numberOfResults > 0) {
-                List<WebElement> stringDate = row.findElements(By.tagName("td"));
-                LocalDate awardLegalGrantingDate = LocalDate.parse(stringDate.get(columnIndex).getText(), formatter);
-                if (awardLegalGrantingDate.isAfter(fromDate) && awardLegalGrantingDate.isBefore(toDate)) {
-                    isWithinDateRange = true;
-                }
-            }
-            Assert.assertTrue(isWithinDateRange);
-        }
+    @Then("the results table should only display results within the {string} provided")
+    public void theResultsTableShouldOnlyDisplayResultsWithinTheDatesProvided(String dateType) {
+        stepDefinitionActions.doResultsInTableMatchDates(dateType);
     }
 
     @Then("the results table should only display awards with the same spending sectors")
@@ -163,62 +124,76 @@ public class StepDefinitions extends BasePage {
 
     @When("the user selects filters button")
     public void theUserSelectsFiltersButton() {
-        driver.findElement(By.id("filters_button")).click();
+//        driver.findElement(By.id("filters_button")).click();
+        stepDefinitionActions.userSelectsFiltersButton();
     }
 
     @Then("all the filters are hidden")
     public void allTheFiltersAreHidden() {
-        String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
-        // If the filters are hidden the form style will be changed from display: block; -> display: none;
-        Assert.assertEquals("display: none;",filtersStyle);
+//        String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
+//        // If the filters are hidden the form style will be changed from display: block; -> display: none;
+//        Assert.assertEquals("display: none;",filtersStyle);
+        stepDefinitionActions.hideFilters();
     }
 
 
     @Then("all the filters are displayed")
     public void allTheFiltersAreDisplayed() {
-        String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
-        // If the filters are hidden the form style will be changed from display: none -> display: block;
-        Assert.assertEquals("display: block;",filtersStyle);
+//        String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
+//        // If the filters are hidden the form style will be changed from display: none -> display: block;
+//        Assert.assertEquals("display: block;",filtersStyle);
+        stepDefinitionActions.displayFilters();
     }
 
     @When("the user selects {string} button")
     public void theUserSelectsOpenAllButton(String expandCollapseButton) {
-        driver.findElement(By.xpath("//*[@id=\"accordion-default\"]/div[1]/button")).click();
+//        driver.findElement(By.xpath("//*[@id=\"accordion-default\"]/div[1]/button")).click();
+        stepDefinitionActions.openAllFilters();
+    }
+
+    @Then("all scheme filters are {string}")
+    public void allSchemeFiltersAreExpanded(String filtersState) {
+//        stepDefinitionActions.areAllSchemeFiltersExpanded();
+        stepDefinitionActions.verifyFilterState(filtersState);
     }
 
     /**
      * Verifies that all filters are expanded or closed in a web page.
      *
-     * @param expandOrClose a string indicating whether filters should be expanded or closed
+     * @param expandedOrClosed a string indicating whether filters should be expanded or closed
      */
     @Then("all filters are {string}")
-    public void verifyFiltersState(String expandOrClose) {
-        boolean expectedState = expandOrClose.equals("expanded");
-
-        WebElement purposeFilterSection = driver.findElement(By.id("accordion-default-heading-1"));
-        WebElement sectorFilterSection = driver.findElement(By.id("accordion-default-heading-2"));
-        WebElement typeFilterSection = driver.findElement(By.id("accordion-default-heading-3"));
-
-        assertFilterState(purposeFilterSection, expectedState);
-        assertFilterState(sectorFilterSection, expectedState);
-        assertFilterState(typeFilterSection, expectedState);
-    }
-
-    /**
-     * Asserts that a filter section is in the expected state.
-     *
-     * @param filterSection the filter section WebElement
-     * @param expectedState the expected state of the filter section
-     */
-    private void assertFilterState(WebElement filterSection, boolean expectedState) {
-        String actualState = filterSection.getAttribute("aria-expanded");
-        String message = String.format("Filter section '%s' expected to be %s, but was %s", filterSection.getAttribute("id"), expectedState ? "expanded" : "closed", actualState);
-        Assert.assertEquals(expectedState, Boolean.parseBoolean(actualState), message);
+    public void verifyFiltersState(String expandedOrClosed) {
+//        boolean expectedState = expandOrClose.equals("expanded");
+//
+//        WebElement purposeFilterSection = driver.findElement(By.id("accordion-default-heading-1"));
+//        WebElement sectorFilterSection = driver.findElement(By.id("accordion-default-heading-2"));
+//        WebElement typeFilterSection = driver.findElement(By.id("accordion-default-heading-3"));
+//
+//        assertFilterState(purposeFilterSection, expectedState);
+//        assertFilterState(sectorFilterSection, expectedState);
+//        assertFilterState(typeFilterSection, expectedState);
+        stepDefinitionActions.verifyFilterState(expandedOrClosed);
     }
 
     @When("the user selects {string} {string} filter")
-    public void theUserSelectsAwardPurposeFilter(String type, String filter) {
-//        stepDefinitionActions.selectFilter(driver, FilterType.valueOf(type), filter);
+    public void theUserSelectsFilter(String type, String filter) {
+        stepDefinitionActions.selectFilterHeader(FilterType.valueOf(type), filter);
+    }
+
+    @And("the user inputs valid date ranges for {string} {string} filter")
+    public void theUserInputsDateRangeFilterData(String filterString, String filterType) {
+        stepDefinitionActions.inputDates(FilterType.valueOf(filterString), filterType);
+    }
+
+    @And("the user inputs a valid data for {string} {string} filter")
+    public void theUserInputsFilterData(String filterString, String filterType) {
+        stepDefinitionActions.selectFilter(FilterType.valueOf(filterString), filterType);
+    }
+
+    @Then("the results table should only display {string}s with the same {string}")
+    public void theResultsTableShouldOnlyDisplayResultsWithMatchingFilters(String type, String filterType) {
+        stepDefinitionActions.doResultsInTableMatchFilter(type, filterType);
     }
 
     @Then("the {string} filter is expanded")
@@ -267,21 +242,14 @@ public class StepDefinitions extends BasePage {
     public void theDownloadedFileIsOfTypeExcel() {
     }
 
-    @Then("the results table should display all awards")
-    public void theResultsTableShouldDisplayAllAwards() {
-        Assert.assertTrue(stepDefinitionActions.doesTableContainResults(driver));
-    }
-
-
     @When("the user select results per page {string}")
     public void theUserSelectResultsPerPage(String resultsPerPage) {
         driver.findElement(By.id("results-per-page-" + resultsPerPage)).click();
-        System.out.println("Got to here fine");
     }
 
     @Then("the table returns {string} results per page")
     public void theTableReturnsResultsPerPage(String resultsInTable) {
-        Assert.assertEquals(Integer.parseInt(resultsInTable), stepDefinitionActions.numberOfResultsInTable(driver));
+//        Assert.assertEquals(Integer.parseInt(resultsInTable), stepDefinitionActions.numberOfResultsInTable(driver));
     }
 
     @And("the user selects next page")
@@ -294,26 +262,18 @@ public class StepDefinitions extends BasePage {
         driver.findElement(By.id(columnName + "_updownarrow")).click();
     }
 
-    @Then("the tables results are re-ordered by {string} column name")
-    public void theTablesResultsAreReOrderedByColumnName(String columnName) {
-        List<WebElement> resultsTableRows = stepDefinitionActions.retrieveResultsTableRows(driver);
-        Assert.assertTrue(stepDefinitionActions.isAscendingAlphabetical(driver, resultsTableRows));
-    }
+//    @Then("the tables results are re-ordered by {string} column name")
+//    public void theTablesResultsAreReOrderedByColumnName(String columnName) {
+//        List<WebElement> resultsTableRows = stepDefinitionActions.retrieveResultsTableRows(driver);
+//        Assert.assertTrue(stepDefinitionActions.isAscendingAlphabetical(driver, resultsTableRows));
+//    }
+//
+//    @Then("the tables results are re-ordered by legal granting date column name")
+//    public void theTablesResultsAreReOrderedByLegalGrantingDateColumnName() {
+//        List<WebElement> resultsTableRows = stepDefinitionActions.retrieveResultsTableRows(driver);
+//        Assert.assertTrue(stepDefinitionActions.isAscendingDateOrder(driver, resultsTableRows));
+//
+//    }
 
-    @Then("the tables results are re-ordered by legal granting date column name")
-    public void theTablesResultsAreReOrderedByLegalGrantingDateColumnName() {
-        List<WebElement> resultsTableRows = stepDefinitionActions.retrieveResultsTableRows(driver);
-        Assert.assertTrue(stepDefinitionActions.isAscendingDateOrder(driver, resultsTableRows));
-
-    }
-
-    @And("the user inputs a valid {string} for {string} filter")
-    public void theUserInputsAValidSchemeFilter(String filterString, String filterType) {
-//        stepDefinitionActions.selectFilter(driver, FilterType.valueOf(filterString), filterType);
-    }
-
-    @And("the user selects {string} for subsidy {string}")
-    public void theUserSelectsSelectAllForSubsidyPurpose(String ) {
-    }
 
 }

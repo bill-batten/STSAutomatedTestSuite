@@ -3,48 +3,50 @@ package pageobjects;
 import common.BasePage;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import net.thucydides.core.annotations.DefaultUrl;
-//import net.serenitybdd.core.pages.PageObject;
-import net.thucydides.core.pages.PageObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.Select;
 import org.testng.Assert;
 
 import static pageobjects.StepDefinitionActions.FilterType.AWARD;
 
 
 public class StepDefinitionActions extends BasePage {
-//public class StepDefinitionActions extends ScenarioSteps {
-
-
-//    WebDriver driver;
-
-    @FindBy(xpath = "/html/head/title")
-    private WebElement title;
 
     //Search test data
-
     private static final String SUBSIDY_PURPOSE = "Infrastructure";
     private static final String SUBSIDY_SECTOR = "Construction";
     private static final String SUBSIDY_TYPE = "Equity";
+
+    private static final String START_DATE_DAY_FROM = "01";
+    private static final String START_DATE_MONTH_FROM = "01";
+    private static final String START_DATE_YEAR_FROM = "2000";
+    private static final String START_DATE_DAY_TO = "01";
+    private static final String START_DATE_MONTH_TO = "01";
+    private static final String START_DATE_YEAR_TO = "2020";
 
 
     //Scheme test data
     private static final String SC_NUMBER = "SC10128";
     private static final String SUBSIDY_SCHEME_NAME = "BB Test Scheme";
     private static final String PUBLIC_AUTHORITY = "TEST GA";
-    private static final String START_DATE_FROM = "01-01-2000";
-    private static final String START_DATE_TO = "01-02-2000";
+
+    private static final String START_DATE_FROM = "2000-01-01";
+    private static final String START_DATE_TO = "2020-01-01";
+
     private static final String END_DATE_FROM = "01-01-2020";
     private static final String END_DATE_TO = "01-02-2020";
+
     private static final String BUDGET_FROM = "0";
     private static final String BUDGET_TO = "100";
     private static final String STATUS = "Active";
     private static final String ADHOC = "Yes";
-
 
     public void clickHomepageButton(String button) {
         driver.findElement(By.id("homepage_button_" + button.toLowerCase(Locale.ROOT).replaceAll(" ", "_"))).click();
@@ -83,7 +85,6 @@ public class StepDefinitionActions extends BasePage {
         driver.findElement(By.id("beneficiaryname-2")).click();
     }
 
-    //---------------------------------------//
 
     public void userSelectsSubsidyPurpose() {
         selectFilter(AWARD, SUBSIDY_PURPOSE);
@@ -123,7 +124,7 @@ public class StepDefinitionActions extends BasePage {
                 filterTestCase = SUBSIDY_PURPOSE;
                 break;
             case "Sector":
-                headerName = "Subsidy sector";
+                headerName = "Spending sector";
                 filterTestCase = SUBSIDY_SECTOR;
                 break;
             case "Type":
@@ -143,12 +144,14 @@ public class StepDefinitionActions extends BasePage {
         Assert.assertTrue(isMatchingFilter);
     }
 
-
-    //---------------------------------------//
-
     private List<WebElement> getTableBodyRows() {
         WebElement simpleTable = driver.findElement(By.id("searchresult-table-body"));
         return simpleTable.findElements(By.tagName("tr"));
+    }
+
+    public List<WebElement> getFilterRows() {
+        WebElement filterRows = driver.findElement(By.id("filter-accordion-div"));
+        return filterRows.findElements(By.className("govuk-accordion__section"));
     }
 
     public int getColumnIndex(String headerName) {
@@ -165,20 +168,56 @@ public class StepDefinitionActions extends BasePage {
         return -1;
     }
 
-    public boolean doesTableContainResults(WebDriver driver) {
-        return retrieveResultsTableRows(driver).size() > 0;
+    public void userSelectsAwardPeriod(String awardPeriod) {
+        String awardPeriodSelection = "";
+        if (awardPeriod.equals("Yes")) {
+            awardPeriodSelection = "_radio";
+        } else {
+            awardPeriodSelection = "-2";
+        }
+        driver.findElement(By.id("legalgrantingdate" + awardPeriodSelection)).click();
     }
 
-    public int numberOfResultsInTable(WebDriver driver){
-        return retrieveResultsTableRows(driver).size();
+    public void userInputDates() {
+        driver.findElement(By.id("legal_granting_date_day")).sendKeys(START_DATE_DAY_FROM);
+        driver.findElement(By.id("legal_granting_date_month")).sendKeys(START_DATE_MONTH_FROM);
+        driver.findElement(By.id("legal_granting_date_year")).sendKeys(START_DATE_YEAR_FROM);
+        driver.findElement(By.id("legal_granting_date_day1")).sendKeys(START_DATE_DAY_TO);
+        driver.findElement(By.id("legal_granting_date_month1")).sendKeys(START_DATE_MONTH_TO);
+        driver.findElement(By.id("legal_granting_date_year1")).sendKeys(START_DATE_YEAR_TO);
     }
 
-    public List<WebElement> retrieveResultsTableRows(WebDriver driver) {
-        WebElement resultsTable = driver.findElement(By.id("searchresult-table-body"));
-        return resultsTable.findElements(By.tagName("tr"));
+    public void doResultsInTableMatchDates(String dateType) {
+        List<WebElement> rows = getTableBodyRows();
+        int numberOfResults = rows.size();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH);
+
+        LocalDate fromDate = LocalDate.parse(schemeTestData.get(dateType + " From"));
+        LocalDate toDate = LocalDate.parse(schemeTestData.get(dateType + " To"));
+
+
+
+        boolean isWithinDateRange = false;
+//        int columnIndex = getColumnIndex(schemeTestData.get(dateType));
+        int columnIndex = getColumnIndex(dateType);
+        for (WebElement row : rows) {
+            if (numberOfResults > 0) {
+                List<WebElement> stringDate = row.findElements(By.tagName("td"));
+                LocalDate awardLegalGrantingDate = LocalDate.parse(stringDate.get(columnIndex).getText(), formatter);
+                isWithinDateRange = awardLegalGrantingDate.isEqual(fromDate) || awardLegalGrantingDate.isEqual(toDate)
+                        || awardLegalGrantingDate.isAfter(fromDate) && awardLegalGrantingDate.isBefore(toDate);
+            }
+            Assert.assertTrue(isWithinDateRange);
+            System.out.println("Results in table do not match the dates provided.");
+        }
     }
 
-    public boolean isAscendingAlphabetical(WebDriver driver, List<WebElement> resultsTableRows) {
+    public void userSelectsFiltersButton() {
+        driver.findElement(By.id("filters_button")).click();
+    }
+
+    public boolean isAscendingAlphabetical(List<WebElement> resultsTableRows) {
         boolean isInAlphabeticalOrder = true;
 
         // Loop through the list of Web Elements
@@ -243,6 +282,67 @@ public class StepDefinitionActions extends BasePage {
         return true;
     }
 
+    public void userSelectsAll(String selectAllType) {
+        selectFilter(AWARD, selectAllType + " Select all");
+    }
+
+    public void hideFilters() {
+        String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
+        // If the filters are hidden the form style will be changed from display: block; -> display: none;
+        Assert.assertEquals("display: none;",filtersStyle);
+    }
+
+    public void displayFilters() {
+        String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
+        // If the filters are hidden the form style will be changed from display: none -> display: block;
+        Assert.assertEquals("display: block;",filtersStyle);
+    }
+
+    public void openAllFilters() {
+        driver.findElement(By.xpath("//*[@id=\"accordion-default\"]/div[1]/button")).click();
+    }
+
+    public void verifyFilterState(String expandedOrClosed) {
+
+        boolean expectedState = expandedOrClosed.equals("expanded");
+        List<WebElement> rows = getFilterRows();
+        for (int i = 1; i <= rows.size(); i++) {
+            WebElement purposeFilterSection = driver.findElement(By.id("accordion-default-heading-" + i));
+            assertFilterState(purposeFilterSection, expectedState);
+        }
+    }
+
+    /**
+     * Asserts that a filter section is in the expected state.
+     *
+     * @param filterSection the filter section WebElement
+     * @param expectedState the expected state of the filter section
+     */
+    private void assertFilterState(WebElement filterSection, boolean expectedState) {
+        String actualState = filterSection.getAttribute("aria-expanded");
+        String message = String.format("Filter section '%s' expected to be %s, but was %s", filterSection.getAttribute("id"), expectedState ? "expanded" : "closed", actualState);
+        Assert.assertEquals(expectedState, Boolean.parseBoolean(actualState), message);
+    }
+
+    public void doResultsInTableMatchFilter(String type, String filterType) {
+        List<WebElement> results = getTableBodyRows();
+        int columnIndex = getColumnIndex(filterType);
+        for (WebElement rows : results) {
+            List<WebElement> columnData = rows.findElements(By.tagName("td"));
+             Assert.assertEquals(schemeTestData.get(filterType), columnData.get(columnIndex).getText());
+        }
+    }
+
+    public void inputDates(FilterType valueOf, String filterType) {
+        selectFilter(valueOf, filterType + " Day From");
+        selectFilter(valueOf, filterType + " Month From");
+        selectFilter(valueOf, filterType + " Year From");
+
+        selectFilter(valueOf, filterType + " Day To");
+        selectFilter(valueOf, filterType + " Month To");
+        selectFilter(valueOf, filterType + " Year To");
+
+    }
 
     public enum FilterType {
         AWARD, SCHEME
@@ -323,23 +423,33 @@ public class StepDefinitionActions extends BasePage {
         put("Subsidy Control (SC) Number", "filter-scnumber");
         put("Subsidy Scheme Name", "filter-name");
         put("Public Authority", "filter-ga");
-        put("Start Date Day From", "filter-start-month-from");
-        put("End Date", "accordion-default-heading-5");
-        put("Budget", "accordion-default-heading-6");
-        put("Status", "accordion-default-heading-7");
-        put("Ad Hoc", "accordion-default-heading-8");
+
+        put("Start Date Day From", "filter-start-day-from");
+        put("Start Date Month From", "filter-start-month-from");
+        put("Start Date Year From", "filter-start-year-from");
+        put("Start Date Day To", "filter-start-day-to");
+        put("Start Date Month To", "filter-start-month-to");
+        put("Start Date Year To", "filter-start-year-to");
+
+        put("End Date Day From", "filter-end-day-from");
+        put("End Date Month From", "filter-end-month-from");
+        put("End Date Year From", "filter-end-year-from");
+        put("End Date Day To", "filter-end-day-to");
+        put("End Date Month To", "filter-end-month-to");
+        put("End Date Year To", "filter-end-year-to");
+
+        put("Budget", "filter-budget");
+        put("Status", "filter-status");
+        put("Ad Hoc", "filter-adhoc");
     }};
 
     public void selectFilter(FilterType type, String filter) {
         Map<String, String> filterIds;
-        Map<String, String> filterInputFieldIds;
         switch (type) {
             case AWARD:
-//                filterIds = AWARD_FILTER_IDS;
                 filterIds = AWARD_FILTER_INPUT_FIELD_IDS;
                 break;
             case SCHEME:
-//                filterIds = SCHEME_FILTER_IDS;
                 filterIds = SCHEME_FILTER_INPUT_FIELD_IDS;
                 break;
             default:
@@ -352,20 +462,24 @@ public class StepDefinitionActions extends BasePage {
         }
 
         WebElement filterElement = driver.findElement(By.id(id));
-        filterElement.click();
+
+        if(filterElement.getAttribute("class").equals("govuk-select")) {
+            Select select = new Select(filterElement);
+            select.selectByVisibleText(schemeTestData.get(filter));
+        } else {
+            filterElement.sendKeys(schemeTestData.get(filter));
+        }
+
     }
 
     public void selectFilterHeader(FilterType type, String filter) {
         Map<String, String> filterIds;
-        Map<String, String> filterInputFieldIds;
         switch (type) {
             case AWARD:
                 filterIds = AWARD_FILTER_IDS;
-//                filterInputFieldIds = AWARD_FILTER_INPUT_FIELD_IDS;
                 break;
             case SCHEME:
                 filterIds = SCHEME_FILTER_IDS;
-//                filterInputFieldIds = SCHEME_FILTER_INPUT_FIELD_IDS;
                 break;
             default:
                 throw new IllegalArgumentException("Unknown filter type: " + type);
@@ -379,5 +493,33 @@ public class StepDefinitionActions extends BasePage {
         WebElement filterElement = driver.findElement(By.id(id));
         filterElement.click();
     }
+
+    public static final Map<String, String> schemeTestData = new HashMap<String, String>() {{
+        put("Subsidy Control (SC) Number","SC10128");
+        put("Subsidy Scheme Name","BB Test Scheme");
+        put("Public Authority","TEST GA");
+        put("Start Date From","2000-01-01");
+        put("Start Date Day From","01");
+        put("Start Date Month From","01");
+        put("Start Date Year From","2000");
+        put("Start Date To","2020-01-01");
+        put("Start Date Day To","01");
+        put("Start Date Month To","01");
+        put("Start Date Year To","2020");
+
+        put("End Date From","2000-01-01");
+        put("End Date Day From","01");
+        put("End Date Month From","01");
+        put("End Date Year From","2000");
+        put("End Date To","2022-01-01");
+        put("End Date Day To","01");
+        put("End Date Month To","01");
+        put("End Date Year To","2022");
+
+        put("Budget From","100");
+        put("Budget To","200");
+        put("Status","Active");
+        put("Ad Hoc","Yes");
+    }};
 }
 
