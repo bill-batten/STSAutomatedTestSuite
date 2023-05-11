@@ -4,15 +4,13 @@ import io.cucumber.testng.AbstractTestNGCucumberTests;
 import io.cucumber.testng.CucumberOptions;
 
 @CucumberOptions(
+        publish = true,
 
-        tags = "@LoginValidCredentials or @DirectoryTabIsSearchButtonDisplayed",
-
-        features = "src/test/resources/features", glue = { "common", "stepdefinitions",
+        features = "src/main/resources/features", glue = { "common", "stepdefinitions", "pageobjects", "Util",
         "testng.runner" },
 
         plugin = { "pretty", "json:target/cucumber-reports/cucumber.json",
-                "html:target/cucumber-reports/cucumberreport.html",
-                "com.aventstack.extentreports.cucumber.adapter.ExtentCucumberAdapter:"},
+                "html:target/cucumber-reports/cucumberreport.html"},
 
         monochrome = true)
 

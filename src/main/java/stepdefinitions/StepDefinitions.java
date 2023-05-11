@@ -4,19 +4,15 @@ import common.BasePage;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.format.DateTimeFormatter;
+import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.Assert;
 
 import pageobjects.StepDefinitionActions;
 import io.cucumber.java.en.Then;
-import pageobjects.StepDefinitionActions.FilterType;
+
 
 public class StepDefinitions extends BasePage {
 
@@ -48,10 +44,9 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.userSelectsShowResults();
     }
 
-    @And("the search results page should be displayed")
-    public void searchPageShouldBeDisplayed() throws InterruptedException {
-        Thread.sleep(5000);
-        stepDefinitionActions.isSearchPageDisplayed();
+    @And("the {string} results page should be displayed")
+    public void searchPageShouldBeDisplayed(String page) throws InterruptedException {
+        stepDefinitionActions.isSearchPageDisplayed(page);
     }
 
     @Then("the user clicks new search")
@@ -64,29 +59,14 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.userSelectsNo();
     }
 
-    @And("the user selects a subsidy purpose")
-    public void theUserSelectsASubsidyFilter() {
-        stepDefinitionActions.userSelectsSubsidyPurpose();
+    @And("the user selects a subsidy {string}")
+    public void theUserSelectsASubsidyFilter(String filter) {
+        stepDefinitionActions.userSelectsFilterOption(filter);
     }
 
-    @And("the user selects a spending sector")
-    public void theUserSelectsASpendingSector() {
-        stepDefinitionActions.userSelectsSubsidySector();
-    }
-
-    @And("the user selects a subsidy type")
-    public void theUserSelectsASubsidyType() {
-        stepDefinitionActions.userSelectsSubsidyType();
-    }
-
-    @And("the results table should only display results with the same {string}")
-    public void theResultsTableShouldOnlyDisplayResultsWithMatchingFilter(String filterType) {
-        stepDefinitionActions.doesTableContainMatchingFilters(filterType);
-    }
-
-    @And("the user selects Select all for {string}")
-    public void theUserSelectsSubsidyAwardSelectAll(String selectAllType) {
-        stepDefinitionActions.userSelectsAll(selectAllType);
+    @And("the user selects Select all")
+    public void theUserSelectsSubsidyAwardSelectAll() {
+        stepDefinitionActions.userSelectsAll();
     }
 
     @And("the user selects {string} for award period")
@@ -145,17 +125,17 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.displayFilters();
     }
 
-    @When("the user selects {string} button")
-    public void theUserSelectsOpenAllButton(String expandCollapseButton) {
+    @When("the user selects open or close all filters button")
+    public void theUserSelectsOpenAllButton() {
 //        driver.findElement(By.xpath("//*[@id=\"accordion-default\"]/div[1]/button")).click();
-        stepDefinitionActions.openAllFilters();
+        stepDefinitionActions.toggleAllFilters();
     }
 
-    @Then("all scheme filters are {string}")
-    public void allSchemeFiltersAreExpanded(String filtersState) {
-//        stepDefinitionActions.areAllSchemeFiltersExpanded();
-        stepDefinitionActions.verifyFilterState(filtersState);
-    }
+//    @Then("all scheme filters are {string}")
+//    public void allSchemeFiltersAreExpanded(String filtersState) {
+////        stepDefinitionActions.areAllSchemeFiltersExpanded();
+//        stepDefinitionActions.verifyFilterState(filtersState);
+//    }
 
     /**
      * Verifies that all filters are expanded or closed in a web page.
@@ -176,24 +156,24 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.verifyFilterState(expandedOrClosed);
     }
 
-    @When("the user selects {string} {string} filter")
-    public void theUserSelectsFilter(String type, String filter) {
-        stepDefinitionActions.selectFilterHeader(FilterType.valueOf(type), filter);
+    @When("the user selects {string} filter")
+    public void theUserSelectsSubsidyControlSCNumberFilter(String filterName) {
+        stepDefinitionActions.selectFilterHeader(filterName);
     }
 
-    @And("the user inputs valid date ranges for {string} {string} filter")
-    public void theUserInputsDateRangeFilterData(String filterString, String filterType) {
-        stepDefinitionActions.inputDates(FilterType.valueOf(filterString), filterType);
+    @And("the user inputs valid date ranges for {string} date filter")
+    public void theUserInputsDateRangeFilterData(String filterType) {
+        stepDefinitionActions.inputDates(filterType);
     }
 
-    @And("the user inputs a valid data for {string} {string} filter")
-    public void theUserInputsFilterData(String filterString, String filterType) {
-        stepDefinitionActions.selectFilter(FilterType.valueOf(filterString), filterType);
+    @And("the user inputs a valid data for {string} filter")
+    public void theUserInputsFilterData(String filterType) {
+        stepDefinitionActions.selectFilter(filterType);
     }
 
-    @Then("the results table should only display {string}s with the same {string}")
-    public void theResultsTableShouldOnlyDisplayResultsWithMatchingFilters(String type, String filterType) {
-        stepDefinitionActions.doResultsInTableMatchFilter(type, filterType);
+    @Then("the results table should only display results with the same {string}")
+    public void theResultsTableShouldOnlyDisplayResultsWithMatchingFilters(String filterType) {
+        stepDefinitionActions.doResultsInTableMatchFilter(filterType);
     }
 
     @Then("the {string} filter is expanded")
@@ -213,24 +193,14 @@ public class StepDefinitions extends BasePage {
         Assert.assertEquals("true", driver.findElement(By.id(id)).getAttribute("aria-expanded"));
     }
 
-    @And("the user selects an option from the Purpose filter")
-    public void theUserSelectsAnOptionFromThePurposeFilter() {
-        driver.findElement(By.id("subsidyobjective-2")).click();
+    @And("the user selects an option from the {string} filter")
+    public void theUserSelectsAnOptionFromTheFilter(String filter) {
+        stepDefinitionActions.userSelectsFilterOption(filter);
     }
 
     @And("the user selects Update results")
     public void theUserSelectsUpdateResults() {
         driver.findElement(By.id("update-results-button")).click();
-    }
-
-    @And("the user selects an option from the Sector filter")
-    public void theUserSelectsAnOptionFromTheSectorFilter() {
-        driver.findElement(By.id("spendingsector-construction")).click();
-    }
-
-    @And("the user selects an option from the Type filter")
-    public void theUserSelectsAnOptionFromTheTypeFilter() {
-        driver.findElement(By.id("subsidyinstrument-3")).click();
     }
 
     @When("the user select Export as {string} file")
@@ -244,36 +214,119 @@ public class StepDefinitions extends BasePage {
 
     @When("the user select results per page {string}")
     public void theUserSelectResultsPerPage(String resultsPerPage) {
-        driver.findElement(By.id("results-per-page-" + resultsPerPage)).click();
+//        driver.findElement(By.id("results-per-page-" + resultsPerPage)).click();
+        stepDefinitionActions.selectResultsPerPage(resultsPerPage);
     }
 
     @Then("the table returns {string} results per page")
-    public void theTableReturnsResultsPerPage(String resultsInTable) {
+    public void theTableReturnsResultsPerPage(String resultsPerPage) {
 //        Assert.assertEquals(Integer.parseInt(resultsInTable), stepDefinitionActions.numberOfResultsInTable(driver));
+        stepDefinitionActions.doResultsMatchResultsPerPage(resultsPerPage);
     }
 
     @And("the user selects next page")
     public void theUserSelectsNextPage() {
-        driver.findElement(By.id("paginationlink_next_page")).click();
+//        driver.findElement(By.id("paginationlink_next_page")).click();
+        stepDefinitionActions.userSelectsNextPage();
     }
 
-    @When("the user clicks {string} name ordering arrows")
-    public void theUserClicksBeneficiaryNameOrderingArrows(String columnName) {
-        driver.findElement(By.id(columnName + "_updownarrow")).click();
+    @When("the user clicks {string} ordering arrow by {string} order")
+    public void theUserClicksBeneficiaryNameOrderingArrows(String columnName, String order) {
+        stepDefinitionActions.orderTableByColumn(columnName, order);
     }
 
-//    @Then("the tables results are re-ordered by {string} column name")
-//    public void theTablesResultsAreReOrderedByColumnName(String columnName) {
-//        List<WebElement> resultsTableRows = stepDefinitionActions.retrieveResultsTableRows(driver);
-//        Assert.assertTrue(stepDefinitionActions.isAscendingAlphabetical(driver, resultsTableRows));
-//    }
-//
-//    @Then("the tables results are re-ordered by legal granting date column name")
-//    public void theTablesResultsAreReOrderedByLegalGrantingDateColumnName() {
-//        List<WebElement> resultsTableRows = stepDefinitionActions.retrieveResultsTableRows(driver);
-//        Assert.assertTrue(stepDefinitionActions.isAscendingDateOrder(driver, resultsTableRows));
-//
-//    }
+    @When("the user selects the feedback link")
+    public void theUserSelectsTheFeedbackLink() {
+        stepDefinitionActions.userSelectsFeedbackLink();
+    }
+
+    @Then("the feedback form is displayed")
+    public void theFeedbackFormIsDisplayed() {
+        stepDefinitionActions.isFeedbackFormDisplayed();
+    }
+
+    @Then("the results table should only display awards within the dates provided")
+    public void theResultsTableShouldOnlyDisplayAwardsWithinTheDatesProvided() {
+        stepDefinitionActions.doResultsInTableMatchDates("Subsidy Date");
+    }
+
+    @When("the user selects link text {string}")
+    public void theUserSelectsLinkTextCookies(String linkText) {
+        stepDefinitionActions.userSelectsLinkText(linkText);
+    }
+
+    @Then("the user is directed to historic URL")
+    public void theUserIsDirectedToHistoricURL() throws InterruptedException {
+        stepDefinitionActions.userIsDirectedToHistoricURL();
+    }
+
+    @Then("the user is on the cookies page")
+    public void theUserIsOnTheCookiesPage() {
+        stepDefinitionActions.isUserOnCookiesPage();
+    }
+
+    @And("the user selects to use cookies")
+    public void theUserSelectsToUseCookies() {
+        stepDefinitionActions.selectAllowCookies();
+    }
+
+    @And("the user selects to not use cookies")
+    public void theUserSelectsToNotUseCookies() {stepDefinitionActions.selectDisallowCookies();
+    }
+
+    @And("selects save changes")
+    public void selectsSaveChanges() {
+        stepDefinitionActions.saveChanges();
+    }
+
+    @Then("the cookies are enabled")
+    public void theCookiesAreEnabled() {
+        stepDefinitionActions.areCookiesEnabled();
+    }
+
+    @Then("the cookies are disabled")
+    public void theCookiesAreDisabled() {
+        stepDefinitionActions.areCookiesEnabled();
+    }
+
+    @And("the user inputs a valid data ranges for {string} filter")
+    public void theUserInputsAValidDataRangesForBudgetFilter(String range) {
+        stepDefinitionActions.inputMonetaryRange(range);
+    }
 
 
+    @Then("the results table should only display results with the {string} range")
+    public void theResultsTableShouldOnlyDisplayResultsWithTheBudgetRange(String budget) {
+        stepDefinitionActions.areTableResultsWithinMonetaryRange(budget);
+    }
+
+    @Then("the tables results are ordered in {string} order by {string} column name")
+    public void theTablesResultsAreOrderedInAscendingOrderByRecipientNameColumnName(String order, String columnName) {
+        stepDefinitionActions.areTableResultsOrderedByColumnName(order, columnName);
+    }
+
+    @When("the user selects export as {string} file button")
+    public void theUserSelectsExportAsExcelFileButton(String fileType) {
+        stepDefinitionActions.selectDownloadFileButton(fileType);
+    }
+
+    @Then("the {string} file should be downloaded to the downloads folder")
+    public void theExcelFileShouldBeDownloadedToTheDownloadsFolder(String fileType) throws IOException {
+        stepDefinitionActions.openBrowserDownloadsFolder(fileType);
+    }
+
+    @When("the user clicks on recipient name link")
+    public void theUserClicksOnRecipientNameLink() {
+        stepDefinitionActions.userClicksRecipientNameLink();
+    }
+
+    @Then("the number of results inside the file should match the number of results on the page")
+    public void theNumberOfResultsInsideTheFileShouldMatchTheNumberOfResultsOnThePage() throws InterruptedException {
+        stepDefinitionActions.doPageResultsMatchFileResults();
+    }
+
+    @And("the user selects a subsidy search {string}")
+    public void theUserSelectsASubsidySearchPurpose(String searchOption) {
+        stepDefinitionActions.userSelectsSearchOption(searchOption);
+    }
 }
