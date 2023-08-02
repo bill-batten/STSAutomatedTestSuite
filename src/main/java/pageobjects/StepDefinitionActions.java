@@ -3,17 +3,12 @@ package pageobjects;
 import au.com.bytecode.opencsv.CSVReader;
 import com.google.gson.Gson;
 import common.BasePage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -34,20 +29,52 @@ public class StepDefinitionActions extends BasePage {
 
     private static final DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
 
+    public static Properties testingProperties = new Properties();
+
+    String filepath = "/Users/billbatten/Projects/Subsidy/AutomatedTestSuite/src/main/resources/testing.properties";
+
+    OutputStream ips;
+//    OutputStream ips;
+
+
+//    {
+//        try {
+//            ips = new FileOutputStream("/Users/billbatten/Projects/Subsidy/AutomatedTestSuite/src/main/resources/testing.properties");
+//            testingProperties.load(new FileInputStream("/Users/billbatten/Projects/Subsidy/AutomatedTestSuite/src/main/resources/testing.properties"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+
+    //TODO - Removed all individual button clicks and replaced with the click
+
+
     public void clickHomepageButton(String button) {
         driver.findElement(By.id("homepage_button_" + button.toLowerCase(Locale.ROOT).replaceAll("[ /]", "_"))).click();
     }
 
-    public void userSelectsYes() {
-        driver.findElement(By.id("beneficiary_name_radio_button")).click();
+    public void userSelectsButtonByText(String elementName) throws InterruptedException {
+        WebElement buttonElement = driver.findElement(By.xpath("//button[contains(text(), '" + elementName + "')] | " +
+                "//label[contains(text(), '" + elementName + "')] | " +
+                "//a[contains(text(), '" + elementName + "')] | " +
+                "//input[contains(text(), '" + elementName + "')]"));
+        buttonElement.click();
+        Thread.sleep(2000);
     }
 
-    public void userSelectsContinue() {
-        driver.findElement(By.xpath("//*[@id=\"main-content\"]/form/button")).click();
-    }
+    public boolean doesTextExistOnPage(String text) {
+        boolean textExists = false;
+        try {
+            WebElement buttonElement = driver.findElement(By.xpath("//button[contains(text(), '" + text + "')] | " +
+                    "//label[contains(text(), '" + text + "')] | " +
+                    "//a[contains(text(), '" + text + "')] | " +
+                    "//input[contains(text(), '" + text + "')]"));
 
-    public void userSelectsShowResults() {
-        driver.findElement(By.xpath("//*[@id=\"main-content\"]/form/fieldset/button")).click();
+            textExists = true;
+        } catch (Exception ignored) {
+        }
+        return textExists;
     }
 
     public void isSearchPageDisplayed(String page) throws InterruptedException {
@@ -63,25 +90,17 @@ public class StepDefinitionActions extends BasePage {
         Thread.sleep(1000);
     }
 
-    public void userSelectsNewSearch() {
-        driver.findElement(By.xpath("//*[@id=\"main-content\"]/div[2]/div[1]/form/div/button")).click();
-    }
-
     public void isUserOnHomepage() {
         String expectedPageTitle = "GOV.UK - Public user search page";
         String actualPageTitle = driver.getTitle();
         Assert.assertEquals(actualPageTitle, expectedPageTitle);
     }
 
-    public void userSelectsNo() {
-        driver.findElement(By.id("beneficiaryname-2")).click();
-    }
-
     public void userSelectsFilterOption(String filter) {
         selectFilter(testData.get(filter));
     }
 
-    private List<WebElement> getTableBodyRows() {
+    public List<WebElement> getTableBodyRows() {
         WebElement simpleTable = driver.findElement(By.id("searchresult-table-body"));
         return simpleTable.findElements(By.tagName("tr"));
     }
@@ -94,10 +113,10 @@ public class StepDefinitionActions extends BasePage {
                 .findElements(By.tagName("th"));
         for (int i = 0; i < headerCells.size(); i++) {
             if (headerCells.get(i).getText().toLowerCase(Locale.ROOT).contains(headerName.toLowerCase(Locale.ROOT))) {
-                return i;
+                return i + 1;
             }
         }
-        return -1;
+        throw new IllegalArgumentException("Column header not found: " + headerName);
     }
 
     public void userSelectsAwardPeriod(String awardPeriod) {
@@ -111,12 +130,12 @@ public class StepDefinitionActions extends BasePage {
     }
 
     public void userInputDates() {
-        driver.findElement(By.id("legal_granting_date_day")).sendKeys(testData.get("Start Date Day From"));
-        driver.findElement(By.id("legal_granting_date_month")).sendKeys(testData.get("Start Date Month From"));
-        driver.findElement(By.id("legal_granting_date_year")).sendKeys(testData.get("Start Date Year From"));
-        driver.findElement(By.id("legal_granting_date_day1")).sendKeys(testData.get("Start Date Day To"));
-        driver.findElement(By.id("legal_granting_date_month1")).sendKeys(testData.get("Start Date Month To"));
-        driver.findElement(By.id("legal_granting_date_year1")).sendKeys(testData.get("Start Date Year To"));
+        driver.findElement(By.id("legal_granting_date_day")).sendKeys(testData.get("Date Day From"));
+        driver.findElement(By.id("legal_granting_date_month")).sendKeys(testData.get("Date Month From"));
+        driver.findElement(By.id("legal_granting_date_year")).sendKeys(testData.get("Date Year From"));
+        driver.findElement(By.id("legal_granting_date_day1")).sendKeys(testData.get("Date Day To"));
+        driver.findElement(By.id("legal_granting_date_month1")).sendKeys(testData.get("Date Month To"));
+        driver.findElement(By.id("legal_granting_date_year1")).sendKeys(testData.get("Date Year To"));
     }
 
     public void doResultsInTableMatchDates(String dateType) {
@@ -140,10 +159,6 @@ public class StepDefinitionActions extends BasePage {
             Assert.assertTrue(isWithinDateRange);
             System.out.println("Results in table do not match the dates provided.");
         }
-    }
-
-    public void userSelectsFiltersButton() {
-        driver.findElement(By.id("filters_button")).click();
     }
 
 
@@ -181,10 +196,6 @@ public class StepDefinitionActions extends BasePage {
         return true;
     }
 
-    public void userSelectsAll() {
-        driver.findElement(By.xpath("//*[contains(text(),'Select all')]"));
-    }
-
     public void hideFilters() {
         String filtersStyle = driver.findElement(By.id("filter-accordion-div")).getAttribute("style");
         // If the filters are hidden the form style will be changed from display: block; -> display: none;
@@ -215,6 +226,9 @@ public class StepDefinitionActions extends BasePage {
         }
 
     }
+
+
+    //TODO - Replace this with the new function I created to check matching table values
 
     public void doResultsInTableMatchFilter(String filterType) {
         List<WebElement> results = getTableBodyRows();
@@ -303,7 +317,9 @@ public class StepDefinitionActions extends BasePage {
         driver.findElement(By.id("radio-e76f0057-0")).click();
     }
 
-    public void selectDisallowCookies() { driver.findElement(By.id("radio-e76f0057-1")).click();}
+    public void selectDisallowCookies() {
+        driver.findElement(By.id("radio-e76f0057-1")).click();
+    }
 
     public void saveChanges() {
         driver.findElement(By.id("save-changes-button")).click();
@@ -356,7 +372,10 @@ public class StepDefinitionActions extends BasePage {
     }
 
     public void areTableResultsOrderedByColumnName(String order, String columnName) {
-        if (columnName.toLowerCase(Locale.ROOT).contains("date")) {
+        WebElement column = driver.findElement(By.cssSelector("#searchresult-table thead tr th:nth-child(" + getColumnIndex(columnName) + ") a"));
+        String dataType = column.getAttribute("data-type");
+
+        if (dataType != null && !dataType.isEmpty()) {
             Assert.assertTrue(isDateOrder(order));
         } else {
             Assert.assertTrue(isCorrectAlphabeticalOrder(order, columnName));
@@ -368,8 +387,13 @@ public class StepDefinitionActions extends BasePage {
             WebElement table = driver.findElement(By.id("searchresult-table"));
             WebElement columnLink = table.findElement(By.xpath("//a[contains(text(),'" + columnName + "')]"));
             WebElement columnIcon = columnLink.findElement(By.tagName("img"));
-            String altText = columnIcon.getAttribute("alt");
-            return altText.toLowerCase(Locale.ROOT).contains(order.toLowerCase(Locale.ROOT));
+            String sortedStatusAttribute = "";
+            if (!columnIcon.getAttribute("alt").equals("")) {
+                sortedStatusAttribute = columnIcon.getAttribute("alt");
+            } else if (columnIcon.getAttribute("aria-label") != null|| !(columnIcon.getAttribute("aria-label").equals(""))) {
+                sortedStatusAttribute = columnIcon.getAttribute("aria-label");
+            }
+            return sortedStatusAttribute.toLowerCase(Locale.ROOT).contains(order.toLowerCase(Locale.ROOT));
         } catch (NoSuchElementException e) {
             System.out.println("Element not found: " + e.getMessage());
             return false;
@@ -394,9 +418,16 @@ public class StepDefinitionActions extends BasePage {
         boolean isCorrectOrder = false;
         while (!isCorrectOrder) {
             WebElement table = driver.findElement(By.id("searchresult-table"));
-            WebElement column = table.findElement(By.xpath("//a[contains(text(),' " + columnName + "')]"));
-            String sortedStatus = column.findElement(By.tagName("img")).getAttribute("alt");
-            if (sortedStatus.toLowerCase(Locale.ROOT).contains(order.toLowerCase(Locale.ROOT))) {
+            WebElement column = table.findElement(By.xpath("//a[contains(text(),'" + columnName + "')]"));
+            WebElement sortTag = column.findElement(By.tagName("img"));
+            String sortedStatusAttribute = "";
+            if (!sortTag.getAttribute("alt").equals("")) {
+                sortedStatusAttribute = sortTag.getAttribute("alt");
+            } else if (sortTag.getAttribute("aria-label") != null|| !(sortTag.getAttribute("aria-label").equals(""))) {
+                sortedStatusAttribute = sortTag.getAttribute("aria-label");
+            }
+
+            if (sortedStatusAttribute.toLowerCase(Locale.ROOT).contains(order.toLowerCase(Locale.ROOT))) {
                 isCorrectOrder = true;
             } else {
                 column.click();
@@ -408,7 +439,7 @@ public class StepDefinitionActions extends BasePage {
         driver.findElement(By.id("export_" + fileType.toLowerCase(Locale.ROOT) + "_button")).click();
     }
 
-    public void openBrowserDownloadsFolder(String fileType){
+    public void openBrowserDownloadsFolder(String fileType) {
         String downloadsFolder = getDownloadFolder();
         File folder = new File(downloadsFolder);
         File[] files = folder.listFiles();
@@ -523,7 +554,7 @@ public class StepDefinitionActions extends BasePage {
         return rowCount - 1;
     }
 
-    public void doPageResultsMatchFileResults () throws InterruptedException {
+    public void doPageResultsMatchFileResults() throws InterruptedException {
         Assert.assertEquals(numberOfResultsInFile(), numberOfResultsOnPage());
         System.out.println("Expected [" + numberOfResultsOnPage() + "] - Actual [" + numberOfResultsInFile() + "] results");
     }
@@ -532,5 +563,169 @@ public class StepDefinitionActions extends BasePage {
     public void userSelectsSearchOption(String searchOption) {
         driver.findElement(By.xpath("//*[contains(text(),' " + testData.get(searchOption) + "')]")).click();
     }
+
+    public void isPurposeFilterExpanded(String filter) {
+        String id = "";
+        switch (filter) {
+            case "Purpose":
+                id = "accordion-default-heading-1";
+                break;
+            case "Sector":
+                id = "accordion-default-heading-2";
+                break;
+            case "Type":
+                id = "accordion-default-heading-3";
+                break;
+        }
+        Assert.assertEquals("true", driver.findElement(By.id(id)).getAttribute("aria-expanded"));
+    }
+
+    public void exportFile(String exportFileType) {
+        driver.findElement(By.id("export_" + exportFileType + "_button")).click();
+    }
+
+    public void userSelectsOptionFromNavigationBar(String navOption) {
+        driver.findElement(By.linkText(navOption)).click();
+    }
+
+    public void isCorrectPageDisplayed(String pageTitle) {
+
+        String actualTitle = driver.getTitle().toLowerCase(Locale.ROOT);
+        String expectedTitle = ("gov.uk - " + pageTitle.toLowerCase(Locale.ROOT));
+        Assert.assertEquals(actualTitle, expectedTitle);
+    }
+
+    public void loginAsUser(String user) {
+
+        // if BEIS ADMIN USERNAME then USERNAME = BEISADMIN USERNAME
+        // else
+        // get username from env file - create method get variable from env
+        // else
+        // error
+        // s
+        // if BEIS ADMIN USERNAME then USERNAME = BIESADMIN USERNAME
+        // else
+        // same for PW
+        // get username from env file
+        // else
+        // error
+
+
+//        driver.findElement(By.id("i0116")).sendKeys(System.getenv("BEIS_ADMIN_USERNAME"));
+//        driver.findElement(By.id("idSIButton9")).click();
+//        driver.findElement(By.id("i0118")).sendKeys(System.getenv("BEIS_ADMIN_PASSWORD"));
+//        driver.findElement(By.id("idSIButton9")).click();
+//        driver.findElement(By.id("idSIButton9")).click();
+
+    }
+
+    public void userInputsDataIntoTextField(String textFieldInputData, String textFieldName) throws IOException {
+        //TODO - search easier ways to translate case
+        WebElement inputElement = driver.findElement(By.xpath("//label[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '" + textFieldName.toLowerCase() + "')]/../input"));
+        String string = testData.get(textFieldInputData);
+        inputElement.sendKeys(string);
+
+        storeTestingProperties(string, textFieldInputData);
+    }
+
+
+    public void storeTestingProperties(String string, String textFieldInputData) throws IOException {
+        ips = new FileOutputStream(filepath);
+        testingProperties.load(new FileInputStream(filepath));
+
+        String formatInput = textFieldInputData.replace("\\", "");
+        if (!testingProperties.containsKey(formatInput) && formatInput.equals("public authority name")) {
+            testingProperties.setProperty(formatInput, string);
+        }
+        testingProperties.store(ips, null);
+        ips.close();
+    }
+
+    public void userSelectsSaveButton() throws InterruptedException {
+        driver.findElement(By.xpath("//button[contains(text(), 'Save')]")).click();
+        Thread.sleep(1000);
+    }
+
+    public void selectNewlyCreatedPublicAuthority() {
+        WebElement publicAuthorityNameLinkText = driver.findElement(By.linkText(testingProperties.getProperty("public authority name")));
+        publicAuthorityNameLinkText.click();
+    }
+
+    public void checkPublicAuthorityStatus() {
+        WebElement tableResults = getTableBodyRows().get(0);
+        Assert.assertEquals(tableResults.findElement(By.xpath("td[4]")).getText(), "Inactive");
+    }
+
+    public String getValueFromPropertiesFile(String key) throws IOException {
+
+        ips = new FileOutputStream(filepath, true); //This line is wiping the stream
+        testingProperties.load(new FileInputStream(filepath));
+        String value = testingProperties.getProperty(key.replace("\\", ""));
+        ips.close();
+        return value;
+    }
+
+    public void userInputsDataIntoSearchField(String searchText) throws IOException {
+        if (searchText.equals("id")) {
+            driver.findElement(By.id("search-text")).sendKeys(getRowElement(0, 0));
+        } else if (searchText.equals("public authority name")) {
+            driver.findElement(By.id("search-text")).sendKeys(getRowElement(0, 1));
+        }
+//        driver.findElement(By.id("search-text")).sendKeys(getValueFromPropertiesFile(searchText));
+        driver.findElement(By.id("search-button")).click();
+    }
+
+    private String getRowElement(int row, int element) {
+        WebElement tbodyElement = getTableBodyRows().get(row);
+        return (tbodyElement.findElements(By.tagName("td")).get(element).getText());
+    }
+
+    public Boolean doesFilteredTableContainSearchFilter(String searchText) {
+        switch (searchText) {
+            case "id":
+                getRowElement(0, 0);
+                break;
+            case "public authority name":
+                getRowElement(0, 1);
+                break;
+        }
+        return true;
+    }
+
+    public void setFilterSelect(String filterType) {
+//        By selectLocator = driver.findElement(By.xpath("//button[contains(text(), ' Show all')]"));
+        By selectLocator = By.id("filter-select");
+        Select selectDropdown = new Select(driver.findElement(selectLocator));
+        for (WebElement option : selectDropdown.getOptions()) {
+            if (option.getText().contains(filterType)) {
+                selectDropdown.selectByVisibleText(option.getText());
+                break;  // Once a match is found, exit the loop
+            }
+        }
+    }
+
+    public void doesFilteredTableResultsMatchFilter(String tableValue, String columnHeader) {
+        int columnIndex = getColumnIndex(columnHeader);
+
+        List<WebElement> filteredResultsTable = getTableBodyRows();
+        for (WebElement row : filteredResultsTable) {
+            WebElement cell = row.findElement(By.xpath("td[" + columnIndex + "]"));
+            Assert.assertEquals(cell.getText(), tableValue);
+        }
+    }
 }
+
+//    private int getColumnIndexByHeader(String columnHeader) {
+//        WebElement tableHeadings = driver.findElement(By.tagName("thead"));
+//        WebElement tableRow = tableHeadings.findElement(By.tagName("tr"));
+//        List<WebElement> headingsList = tableRow.findElements(By.tagName("th"));
+//
+//        for (int i = 0; i < headingsList.size(); i++) {
+//            if (headingsList.get(i).getText().equals(columnHeader)) {
+//                return i + 1;  // Return 1-based index
+//            }
+//        }
+//        throw new IllegalArgumentException("Column header not found: " + columnHeader);
+//    }
+//}
 

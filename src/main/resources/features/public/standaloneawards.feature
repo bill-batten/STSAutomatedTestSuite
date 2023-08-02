@@ -1,3 +1,4 @@
+@public-portal
 Feature: Public Portal - testing the different components of the 'view all standalone awards' feature
 
   Background:

@@ -1,15 +1,19 @@
 package Util;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 import pageobjects.StepDefinitionActions;
 
 public class FilterUtils extends StepDefinitionActions {
 
     public static final Map<String, String> testData = new HashMap<String, String>() {{
 
+        final String generateUUID = UUID.randomUUID().toString();
+
+        // PUBLIC TEST DATA
         put("Subsidy Control (SC) Number", "SC10128");
         put("Subsidy Scheme Name", "BB Test Scheme");
         put("Public Authority", "TEST GA");
@@ -35,10 +39,41 @@ public class FilterUtils extends StepDefinitionActions {
         put("MFA Grouping Name", "Tax reduction scheme");
         put("Award Amount From", "100");
         put("Award Amount To", "1000");
-        put("Public Authority", "TEST GA");
+        put("public authority", "TEST GA");
         put("MFA Status", "Published");
 
+        put("Date Day From", String.valueOf(dateFrom.getDayOfMonth()));
+        put("Date Month From", String.valueOf(dateFrom.getMonthValue()));
+        put("Date Year From", String.valueOf(dateFrom.getYear()));
+        put("Date Day To", String.valueOf(dateTo.getDayOfMonth()));
+        put("Date Month To", String.valueOf(dateTo.getMonthValue()));
+        put("Date Year To", String.valueOf(dateTo.getYear()));
+
+
+        // ADMIN TEST DATA
+        put("public authority name", generateUUID);
+        put("user email address", generateUUID + "@cgi.com");
+        put("user first name", "regression");
+        put("user last name", "test");
+        put("user mobile number", "01234567890");
+        put("legal basis", "-");
+        put("invalid granting authority name", "");
+        put("inactive granting authority name", testingProperties.getProperty("public authority name"));
+        put("duplicate granting authority name", "TEST GA");
     }};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //    public static final Map<String, String> AWARD_FILTER_IDS = new HashMap<String, String>() {{

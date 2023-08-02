@@ -1,3 +1,4 @@
+@public-portal
 Feature: Public Portal schemes
 
   Background:
@@ -5,12 +6,12 @@ Feature: Public Portal schemes
     Then the 'schemes' results page should be displayed
 
   Scenario: Hide filters
-    When the user selects filters button
+    When the user selects 'Hide filters' button
     Then all the filters are hidden
 
   Scenario: Show filters
-    When the user selects filters button
-    And the user selects filters button
+    When the user selects 'Hide filters' button
+    And the user selects 'Show filters' button
     Then all the filters are displayed
 
   Scenario: Expand all filters
@@ -25,50 +26,50 @@ Feature: Public Portal schemes
   Scenario: Filter by Subsidy Control (SC) Number
     When the user selects 'Subsidy Control (SC) Number' filter
     And the user selects an option from the 'Subsidy Control (SC) Number' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results with the same 'Subsidy Control (SC) Number'
 
   Scenario: Filter by Subsidy Scheme Name
     When the user selects 'Subsidy Scheme Name' filter
     And the user selects an option from the 'Subsidy Scheme Name' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results with the same 'Subsidy Scheme Name'
 
   Scenario: Filter by public authority
     When the user selects 'Public Authority' filter
     And the user selects an option from the 'Public Authority' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results with the same 'Public Authority'
 
   Scenario: Filter by Start Date
     When the user selects 'Start Date' filter
     And the user inputs valid date ranges for 'Start' date filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results within the 'Start Date' provided
 
   Scenario: Filter by End Date
     When the user selects 'End Date' filter
     And the user inputs valid date ranges for 'End' date filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results within the 'End Date' provided
 
   Scenario: Filter by budget
     When the user selects 'Budget' filter
     And the user inputs a valid data ranges for 'Budget' filter
-    And the user selects Update results
+    And the user selects 'Update results' button.
     Then the results table should only display results with the 'Budget' range
 
   Scenario: Filter by status
     When the user selects 'Status' filter
     And the user selects an option from the 'Scheme Status' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results with the same 'Status'
 
   @export-file
   Scenario: Export schemes as excel file
     When the user selects 'Subsidy Scheme Name' filter
     And the user selects an option from the 'Subsidy Scheme Name' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     And the user selects export as 'Excel' file button
     Then the 'Excel' file should be downloaded to the downloads folder
     And the number of results inside the file should match the number of results on the page
@@ -77,7 +78,7 @@ Feature: Public Portal schemes
   Scenario: Export schemes as csv file
     When the user selects 'Start Date' filter
     And the user inputs valid date ranges for 'Start' date filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     And the user selects export as 'csv' file button
     Then the 'csv' file should be downloaded to the downloads folder
     And the number of results inside the file should match the number of results on the page
@@ -85,7 +86,7 @@ Feature: Public Portal schemes
   Scenario: Filter by ad hoc
     When the user selects 'Ad Hoc' filter
     And the user selects an option from the 'Ad Hoc' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     Then the results table should only display results with the same 'Ad Hoc'
 
   Scenario: 20 Results per page matches results table

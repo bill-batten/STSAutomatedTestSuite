@@ -3,18 +3,19 @@ package common;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import java.io.File;
-import java.nio.file.Files;
-import java.util.logging.Level;
+import org.openqa.selenium.By;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import pageobjects.StepDefinitionActions;
+import stepdefinitions.StepDefinitions;
 
 public class Hooks extends BasePage {
 
     private static final String FOLDER_PATH = System.getProperty("user.dir") + "/SeleniumDownloadsFolder/";
 
-    @Before //Cucumber Before Hook
-    public static void setupDriver() throws InterruptedException {
+    @Before("@public-portal") //Cucumber Before Hook
+    public static void setupPublicDriver() throws InterruptedException {
 
         System.setProperty("webdriver.gecko.driver", "geckodriver");
         FirefoxProfile profile = new FirefoxProfile();
@@ -26,6 +27,23 @@ public class Hooks extends BasePage {
         driver.manage().window().maximize();
         driver.get("http://localhost:3001");
         // Test against staging
+    }
+
+    @Before("@admin-portal") //Cucumber Before Hook
+    public static void setupAdminDriver() throws InterruptedException {
+
+        System.setProperty("webdriver.gecko.driver", "geckodriver");
+        FirefoxProfile profile = new FirefoxProfile();
+        profile.setPreference("browser.download.folderList", 2);
+        profile.setPreference("browser.download.dir", FOLDER_PATH);
+        FirefoxOptions options = new FirefoxOptions();
+        options.setProfile(profile);
+        driver = new FirefoxDriver(options);
+        driver.manage().window().maximize();
+        driver.get("http://localhost:3000");
+        Thread.sleep(2000);
+//        driver.get("http://manageuksubsidies-stg.beis.gov.uk/");
+//        driver.get("http://<username>:<password>manageuksubsidies.beis.gov.uk/");
     }
 
     @Before("@export-file") //Before export file functionality

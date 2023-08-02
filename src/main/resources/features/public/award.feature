@@ -1,7 +1,8 @@
+@public-portal
 Feature: Public Portal - testing the different components of the 'view all awards' feature
 
   Background:
-    Given the user clicks 'View all awards' button
+    Given the user selects 'View all awards' button
     Then the 'awards' results page should be displayed
 
   Scenario: Hide filters (TC_006)
@@ -93,7 +94,7 @@ Feature: Public Portal - testing the different components of the 'view all award
   Scenario: Checks that the number of results is 100 per page but accepts less results (TC_006)
     When the user selects 'Sector' filter
     And the user selects an option from the 'Sector' filter
-    And the user selects Update results
+    And the user selects 'Update results' button
     When the user select results per page '100'
     Then the table returns '100' results per page
 

@@ -1,3 +1,4 @@
+@public-portal
 Feature: General functionality
 
   Scenario: Feedback form
