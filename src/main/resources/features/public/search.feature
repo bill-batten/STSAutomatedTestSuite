@@ -10,7 +10,9 @@ Feature: Public Portal - testing the different components of the search feature
     Then the 'homepage' results page should be displayed
 
   # TODO
-    # Need to rename all of the scenarios to the correct convention
+  # Need to rename all of the scenarios to the correct convention
+  # Re-run these again to make sure the updates filter search works after refactor
+
   Scenario: Search without any filters
     When the user selects 'Start search' button
     And the user selects 'Yes' button

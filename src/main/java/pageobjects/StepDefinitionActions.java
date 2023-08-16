@@ -1,8 +1,11 @@
 package pageobjects;
 
+import Util.FilterUtils;
+import Util.ScenarioContext;
 import au.com.bytecode.opencsv.CSVReader;
 import com.google.gson.Gson;
 import common.BasePage;
+import io.cucumber.datatable.DataTable;
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,9 +34,9 @@ public class StepDefinitionActions extends BasePage {
 
     public static Properties testingProperties = new Properties();
 
-    String filepath = "/Users/billbatten/Projects/Subsidy/AutomatedTestSuite/src/main/resources/testing.properties";
+    static String filepath = "/Users/billbatten/Projects/Subsidy/AutomatedTestSuite/src/main/resources/testing.properties";
 
-    OutputStream ips;
+    static OutputStream ips;
 //    OutputStream ips;
 
 
@@ -54,7 +57,7 @@ public class StepDefinitionActions extends BasePage {
         driver.findElement(By.id("homepage_button_" + button.toLowerCase(Locale.ROOT).replaceAll("[ /]", "_"))).click();
     }
 
-    public void userSelectsButtonByText(String elementName) throws InterruptedException {
+    public static void userSelectsButtonByText(String elementName) throws InterruptedException {
         WebElement buttonElement = driver.findElement(By.xpath("//button[contains(text(), '" + elementName + "')] | " +
                 "//label[contains(text(), '" + elementName + "')] | " +
                 "//a[contains(text(), '" + elementName + "')] | " +
@@ -230,7 +233,7 @@ public class StepDefinitionActions extends BasePage {
 
     //TODO - Replace this with the new function I created to check matching table values
 
-    public void doResultsInTableMatchFilter(String filterType) {
+    public boolean doResultsInTableMatchFilter(String filterType, String searchData) {
         List<WebElement> results = getTableBodyRows();
         int columnIndex = getColumnIndex(filterType);
 
@@ -241,8 +244,10 @@ public class StepDefinitionActions extends BasePage {
         }
         for (WebElement rows : results) {
             List<WebElement> columnData = rows.findElements(By.tagName("td"));
-            Assert.assertTrue(columnData.get(columnIndex).getText().contains(testData.get(filterType)));
+//            return (columnData.get(columnIndex).getText().contains(testData.get(filterType)));
+            return (columnData.get(columnIndex).getText().contains(searchData));
         }
+        return false;
     }
 
     public void inputDates(String filterType) {
@@ -584,14 +589,20 @@ public class StepDefinitionActions extends BasePage {
         driver.findElement(By.id("export_" + exportFileType + "_button")).click();
     }
 
-    public void userSelectsOptionFromNavigationBar(String navOption) {
+    public static void userSelectsOptionFromNavigationBar(String navOption) {
         driver.findElement(By.linkText(navOption)).click();
     }
 
-    public void isCorrectPageDisplayed(String pageTitle) {
+    public static void isCorrectPageDisplayed(String pageTitle) {
 
         String actualTitle = driver.getTitle().toLowerCase(Locale.ROOT);
         String expectedTitle = ("gov.uk - " + pageTitle.toLowerCase(Locale.ROOT));
+        Assert.assertEquals(actualTitle, expectedTitle);
+    }
+
+    public void isSuccessPageDisplayed(String pageTitle) {
+        String actualTitle = driver.getTitle().toLowerCase(Locale.ROOT);
+        String expectedTitle = ("gov.uk - " + pageTitle.toLowerCase(Locale.ROOT) + " successfully page");
         Assert.assertEquals(actualTitle, expectedTitle);
     }
 
@@ -619,24 +630,56 @@ public class StepDefinitionActions extends BasePage {
 
     }
 
-    public void userInputsDataIntoTextField(String textFieldInputData, String textFieldName) throws IOException {
-        //TODO - search easier ways to translate case
-        WebElement inputElement = driver.findElement(By.xpath("//label[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '" + textFieldName.toLowerCase() + "')]/../input"));
-        String string = testData.get(textFieldInputData);
-        inputElement.sendKeys(string);
-
-        storeTestingProperties(string, textFieldInputData);
+    //TODO - alter this function to pass in data into a specific field nothing else.
+    public static void userInputsDataIntoTextField(String textFieldInputData, String textFieldName){
+        WebElement inputElement = findInputElementByLabel(textFieldName);
+        inputElement.sendKeys(textFieldInputData);
     }
 
+    public static String getValueForTextField(String textFieldInputData) {
+        if (textFieldInputData.equals("public authority name")) {
+            String publicAuthorityName = ScenarioContext.getContext("public authority name");
+            if (publicAuthorityName == null) {
+                publicAuthorityName = FilterUtils.generateRandomPublicAuthorityName();
+                ScenarioContext.setContext("public authority name", publicAuthorityName);
+            }
+            return publicAuthorityName;
+        } else if (textFieldInputData.equals("user email address")) {
+            return FilterUtils.generateUserEmailAddress();
+        } else {
+            return testData.get(textFieldInputData);
+        }
+    }
 
-    public void storeTestingProperties(String string, String textFieldInputData) throws IOException {
+    private static WebElement findInputElementByLabel(String textFieldName) {
+        String lowercaseTextFieldName = textFieldName.toLowerCase();
+
+        // Check for input or textarea elements based on the structure
+        String inputXPath = String.format(
+                "//label[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]/following-sibling::input",
+                lowercaseTextFieldName
+        );
+
+        String textareaXPath = String.format(
+                "//label[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]/following-sibling::*[1][self::details]/following-sibling::textarea",
+                lowercaseTextFieldName
+        );
+
+        String nestedInputXPath = String.format(
+                "//label[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]/following-sibling::details/following-sibling::div/input",
+                lowercaseTextFieldName
+        );
+
+        // Combine all XPaths with 'or' condition
+        String combinedXPath = String.format("(%s | %s | %s)", inputXPath, textareaXPath, nestedInputXPath);
+
+        return driver.findElement(By.xpath(combinedXPath));
+    }
+
+    public void storeTestingProperties(String textFieldInputData, String value) throws IOException {
         ips = new FileOutputStream(filepath);
         testingProperties.load(new FileInputStream(filepath));
-
-        String formatInput = textFieldInputData.replace("\\", "");
-        if (!testingProperties.containsKey(formatInput) && formatInput.equals("public authority name")) {
-            testingProperties.setProperty(formatInput, string);
-        }
+        testingProperties.setProperty(textFieldInputData, value);
         testingProperties.store(ips, null);
         ips.close();
     }
@@ -647,7 +690,7 @@ public class StepDefinitionActions extends BasePage {
     }
 
     public void selectNewlyCreatedPublicAuthority() {
-        WebElement publicAuthorityNameLinkText = driver.findElement(By.linkText(testingProperties.getProperty("public authority name")));
+        WebElement publicAuthorityNameLinkText = driver.findElement(By.linkText(testingProperties.getProperty("public-authority-name")));
         publicAuthorityNameLinkText.click();
     }
 
@@ -656,11 +699,11 @@ public class StepDefinitionActions extends BasePage {
         Assert.assertEquals(tableResults.findElement(By.xpath("td[4]")).getText(), "Inactive");
     }
 
-    public String getValueFromPropertiesFile(String key) throws IOException {
+    public static String getValueFromPropertiesFile(String key) throws IOException {
 
         ips = new FileOutputStream(filepath, true); //This line is wiping the stream
         testingProperties.load(new FileInputStream(filepath));
-        String value = testingProperties.getProperty(key.replace("\\", ""));
+        String value = testingProperties.getProperty(key);
         ips.close();
         return value;
     }
@@ -713,19 +756,22 @@ public class StepDefinitionActions extends BasePage {
             Assert.assertEquals(cell.getText(), tableValue);
         }
     }
-}
 
-//    private int getColumnIndexByHeader(String columnHeader) {
-//        WebElement tableHeadings = driver.findElement(By.tagName("thead"));
-//        WebElement tableRow = tableHeadings.findElement(By.tagName("tr"));
-//        List<WebElement> headingsList = tableRow.findElements(By.tagName("th"));
-//
-//        for (int i = 0; i < headingsList.size(); i++) {
-//            if (headingsList.get(i).getText().equals(columnHeader)) {
-//                return i + 1;  // Return 1-based index
-//            }
-//        }
-//        throw new IllegalArgumentException("Column header not found: " + columnHeader);
-//    }
-//}
+    public void fillSubsidySchemeDataTable(DataTable subsidySchemeDataTable) throws IOException {
+        List<Map<String, String>> rows = subsidySchemeDataTable.asMaps(String.class, String.class);
+
+        for (Map<String, String> row : rows) {
+            String fieldName = row.get("Field");
+            String value = row.get("Value");
+
+            switch (value){
+                case ("Active-public-authority-name"):
+                    value= getValueFromPropertiesFile(value);
+                    break;
+            }
+
+            userInputsDataIntoTextField(value, fieldName);
+        }
+    }
+}
 

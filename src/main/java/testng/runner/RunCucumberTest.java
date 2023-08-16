@@ -5,14 +5,11 @@ import io.cucumber.testng.CucumberOptions;
 
 @CucumberOptions(
         publish = true,
-
-        features = "src/main/resources/features/public", glue = { "common", "stepdefinitions", "pageobjects", "Util",
-        "testng.runner" },
-
-        plugin = { "pretty", "json:target/cucumber-reports/cucumber.json",
-                "html:target/cucumber-reports/cucumberreport.html"},
-
-        monochrome = true)
+        features = {"src/main/resources/features/public", "src/main/resources/features/admin"},
+        glue = "stepdefinitions",
+        plugin = {"pretty", "json:target/cucumber-reports/cucumber.json", "html:target/cucumber-reports/cucumberreport.html"},
+        monochrome = true
+)
 
 public class RunCucumberTest extends AbstractTestNGCucumberTests {
 //    @Override

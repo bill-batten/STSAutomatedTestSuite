@@ -1,18 +1,27 @@
 package stepdefinitions;
 
 import Util.FilterUtils;
+import Util.ScenarioContext;
 import common.BasePage;
+import io.cucumber.datatable.DataTable;
+
+import io.cucumber.java.DataTableType;
+import io.cucumber.java.Scenario;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import java.io.IOException;
 import java.util.List;
-import org.openqa.selenium.By;
-
-import org.openqa.selenium.WebElement;
+import java.util.Map;
+import java.util.UUID;
 import org.testng.Assert;
 import pageobjects.StepDefinitionActions;
 import io.cucumber.java.en.Then;
+
+//import static Util.FilterUtils.*;
+
+import static Util.FilterUtils.testData;
+import static pageobjects.StepDefinitionActions.getValueFromPropertiesFile;
 
 
 public class StepDefinitions extends BasePage {
@@ -25,49 +34,21 @@ public class StepDefinitions extends BasePage {
     }
 
     @When("the user clicks {string} button")
-    public void theclicksUserClicksHomepageButton(String button) {
+    public void theUserClicksHomepageButton(String button) {
         stepDefinitionActions.clickHomepageButton(button);
     }
 
-//    @And("the user selects yes")
-//    public void selectYes() {
-//        stepDefinitionActions.userSelectsYes();
-//    }
-
-//    @And("the user selects Continue")
-//    public void selectContinue() throws InterruptedException {
-//        stepDefinitionActions.userSelectsContinue();
-//    }
-
-//    @And("the user selects Show results")
-//    public void selectShowResults() {
-//        stepDefinitionActions.userSelectsShowResults();
-//    }
 
     @And("the {string} results page should be displayed")
     public void searchPageShouldBeDisplayed(String page) throws InterruptedException {
         stepDefinitionActions.isSearchPageDisplayed(page);
     }
 
-//    @Then("the user clicks new search")
-//    public void iClickNewSearch() {
-//        stepDefinitionActions.userSelectsNewSearch();
-//    }
-//
-//    @And("the user selects No")
-//    public void theUserSelectsNo() {
-//        stepDefinitionActions.userSelectsNo();
-//    }
-
     @And("the user selects a subsidy {string}")
     public void theUserSelectsASubsidyFilter(String filter) {
         stepDefinitionActions.userSelectsFilterOption(filter);
     }
 
-//    @And("the user selects Select all")
-//    public void theUserSelectsSubsidyAwardSelectAll() {
-//        stepDefinitionActions.userSelectsAll();
-//    }
 
     @And("the user selects {string} for award period")
     public void theUserSelectsAwardPeriod(String awardPeriod) {
@@ -83,29 +64,6 @@ public class StepDefinitions extends BasePage {
     public void theResultsTableShouldOnlyDisplayResultsWithinTheDatesProvided(String dateType) {
         stepDefinitionActions.doResultsInTableMatchDates(dateType);
     }
-
-//    @Then("the results table should only display awards with the same spending sectors")
-//    public void theResultsTableShouldOnlyDisplayAwardsWithTheSameSpendingSectors() {
-//
-//        WebElement simpleTable = driver.findElement(By.id("searchresult-table-body"));
-//        List<WebElement> rows = simpleTable.findElements(By.tagName("tr"));
-//
-//        int columnIndex = stepDefinitionActions.getColumnIndex("Spending sector");
-//
-//        boolean isSpendingSector = true;
-//        for (WebElement row : rows) {
-//            List<WebElement> stringDate = row.findElements(By.tagName("td"));
-//            if (!stringDate.get(columnIndex).getText().equals("Construction")) {
-//                isSpendingSector = false;
-//            }
-//        }
-//        Assert.assertTrue(isSpendingSector);
-//    }
-
-//    @When("the user selects filters button")
-//    public void theUserSelectsFiltersButton() {
-//        stepDefinitionActions.userSelectsFiltersButton();
-//    }
 
     @Then("all the filters are hidden")
     public void allTheFiltersAreHidden() {
@@ -150,7 +108,8 @@ public class StepDefinitions extends BasePage {
 
     @Then("the results table should only display results with the same {string}")
     public void theResultsTableShouldOnlyDisplayResultsWithMatchingFilters(String filterType) {
-        stepDefinitionActions.doResultsInTableMatchFilter(filterType);
+        String searchData = testData.get(filterType);
+        Assert.assertTrue(stepDefinitionActions.doResultsInTableMatchFilter(filterType, searchData));
     }
 
     @Then("the {string} filter is expanded")
@@ -162,11 +121,6 @@ public class StepDefinitions extends BasePage {
     public void theUserSelectsAnOptionFromTheFilter(String filter) {
         stepDefinitionActions.userSelectsFilterOption(filter);
     }
-
-//    @And("the user selects Update results")
-//    public void theUserSelectsUpdateResults() {
-//        stepDefinitionActions.userSelectsUpdateResults();
-//    }
 
     @When("the user select Export as {string} file")
     public void theUserSelectExportAsExcelFile(String exportFileType) {
@@ -300,10 +254,11 @@ public class StepDefinitions extends BasePage {
     }
 
     @When("the user selects to add a new public authority")
-    public void theUserSelectsAddANewPublicAuthority() throws InterruptedException, IOException {
+    public void theUserSelectsAddANewPublicAuthority() throws InterruptedException{
         stepDefinitionActions.userSelectsButtonByText("Add a new public authority");
-        stepDefinitionActions.isCorrectPageDisplayed("Add Public Authority page");
-        stepDefinitionActions.userInputsDataIntoTextField("public authority name", "public authority name");
+        StepDefinitionActions.isCorrectPageDisplayed("Add Public Authority page");
+        String inputData = StepDefinitionActions.getValueForTextField("public authority name");
+        stepDefinitionActions.userInputsDataIntoTextField(inputData, "public authority name");
         stepDefinitionActions.userSelectsButtonByText("Continue");
     }
 
@@ -314,7 +269,7 @@ public class StepDefinitions extends BasePage {
 
     @Then("the {string} page should be displayed")
     public void thePublicAuthoritiesPageShouldBeDisplayed(String pageTitle) {
-        stepDefinitionActions.isCorrectPageDisplayed(pageTitle);
+        stepDefinitionActions.isCorrectPageDisplayed(pageTitle + " search page");
     }
 
     @Given("the user logs in as {string}")
@@ -322,10 +277,10 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.loginAsUser(user);
     }
 
-    @And("the user inputs a valid {string} into text field {string}")
-    public void theUserInputsAValidPublicAuthorityNameIntoTextField(String testData, String textFieldName) throws IOException {
-        stepDefinitionActions.userInputsDataIntoTextField(testData, textFieldName);
-    }
+//    @And("the user inputs a valid {string} into text field {string}")
+//    public void theUserInputsAValidPublicAuthorityNameIntoTextField(String testData, String textFieldName) throws IOException {
+//        stepDefinitionActions.userInputsDataIntoTextField(testData, textFieldName);
+//    }
 
     @And("the user selects Save")
     public void theUserSelectsSave() throws InterruptedException {
@@ -337,22 +292,22 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.userSelectsLinkText(linkText);
     }
 
-    @And("the user selects ID of newly created public authority")
-    public void theUserSelectsIDOfNewlyCreatedPublicAuthority() {
-        stepDefinitionActions.selectNewlyCreatedPublicAuthority();
-    }
 
     @Then("the status of the public authority should be inactive")
     public void theStatusOfThePublicAuthorityShouldBeInactive() {
         stepDefinitionActions.checkPublicAuthorityStatus();
     }
 
+
+    //TODO - Could refactor this here to pass the testData.get() method instead of passing the string which then uses the same method elsewhere
     @And("the user creates a test user")
     public void theUserCreatesATestUser() throws IOException, InterruptedException {
         stepDefinitionActions.userSelectsOptionFromNavigationBar("Users");
         stepDefinitionActions.userSelectsButtonByText("Add a new user");
         stepDefinitionActions.userSelectsButtonByText("Public Authority Approver");
-        stepDefinitionActions.userInputsDataIntoTextField("public authority name", "public authority name");
+
+        //TODO - the PA is inactive - get the stored one from scenario context
+        stepDefinitionActions.userInputsDataIntoTextField(ScenarioContext.getContext("public authority name"), "public authority name");
         stepDefinitionActions.userInputsDataIntoTextField("user email address", "Email address");
         stepDefinitionActions.userSelectsButtonByText("Continue");
         stepDefinitionActions.userSelectsButtonByText("Continue");
@@ -365,9 +320,12 @@ public class StepDefinitions extends BasePage {
     }
 
     @And("the user deactivates the public authority")
-    public void theUserDeactivatesThePublicAuthority() throws InterruptedException {
+    public void theUserDeactivatesThePublicAuthority() throws InterruptedException, IOException {
         stepDefinitionActions.userSelectsOptionFromNavigationBar("Public Authorities");
-        stepDefinitionActions.selectNewlyCreatedPublicAuthority();
+        String scenarioPublicAuthority = ScenarioContext.getContext("public authority name");
+        ScenarioContext.removeContext("public authority name");
+        ScenarioContext.setContext("inactive public authority", scenarioPublicAuthority);
+        stepDefinitionActions.userSelectsLinkText(scenarioPublicAuthority);
         stepDefinitionActions.userSelectsButtonByText("Deactivate");
         if (stepDefinitionActions.doesTextExistOnPage("Remove all users")){
             stepDefinitionActions.userSelectsButtonByText("Remove all users");
@@ -382,7 +340,7 @@ public class StepDefinitions extends BasePage {
     }
 
     @Then("the filtered table contains matching {string}")
-    public void theFilteredTableContainsMatchingPublicAuthorityName(String searchText) throws IOException {
+    public void theFilteredTableContainsMatchingPublicAuthorityName(String searchText){
         Assert.assertTrue(stepDefinitionActions.doesFilteredTableContainSearchFilter(searchText));
     }
 
@@ -396,16 +354,6 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.doesFilteredTableResultsMatchFilter(tableValue, columnHeader);
     }
 
-    @When("the user adds an {string} granting authority")
-    public void theUserAddsAnInvalidGrantingAuthority(String errorType) throws InterruptedException, IOException {
-        stepDefinitionActions.userSelectsButtonByText("Add a new public authority");
-        stepDefinitionActions.isCorrectPageDisplayed("Add Public Authority page");
-        stepDefinitionActions.userInputsDataIntoTextField(errorType + " granting authority name", "public authority name");
-        stepDefinitionActions.userSelectsButtonByText("Continue");
-        if (!errorType.equals("invalid")){
-            stepDefinitionActions.userSelectsButtonByText("Save");
-        }
-    }
 
     @Then("the user should be presented with a {string} error")
     public void theUserShouldBePresentedWithAPublicAuthorityAlreadyAddedError(String errorMessage) {
@@ -417,4 +365,70 @@ public class StepDefinitions extends BasePage {
         stepDefinitionActions.loginAsUser(user);
         stepDefinitionActions.isCorrectPageDisplayed(user + " Dashboard page");
     }
+
+//    @And("the user inputs valid subsidy scheme data")
+//    public void theUserInputsValidSubsidySchemeData() throws IOException {
+//        stepDefinitionActions.userInputsDataIntoTextField("Public authority name",  "active public authority name");
+//        stepDefinitionActions.userInputsDataIntoTextField("Subsidy scheme name", "Subsidy scheme name");
+//    }
+
+    @Then("the {string} success page should be displayed")
+    public void thePublicAuthoritiesPageSuccessPageShouldBeDisplayed(String pageTitle) {
+        stepDefinitionActions.isSuccessPageDisplayed(pageTitle);
+    }
+
+    @When("the user fills in the form with the following data:")
+    public void theUserFillsInTheSubsidySchemeFormWithTheFollowingData(DataTable subsidySchemeDataTable){
+        List<Map<String, String>> rows = subsidySchemeDataTable.asMaps(String.class, String.class);
+
+        for (Map<String, String> row : rows) {
+            String fieldName = row.get("Field");
+            String value = row.get("Value");
+
+            if (value.equals("regression-test-scheme-public-authority")){
+                value = ScenarioContext.getContext("public authority name");
+            }
+//            String inputData = StepDefinitionActions.getValueForTextField(value);
+            StepDefinitionActions.userInputsDataIntoTextField(value, fieldName);
+        }
+
+
+    }
+
+    @And("the user selects the following checkboxes:")
+    public void theUserSelectsTheFollowingCheckboxes(DataTable subsidySchemeCheckboxes) throws InterruptedException {
+        List<Map<String, String>> rows = subsidySchemeCheckboxes.asMaps(String.class, String.class);
+
+        for (Map<String, String> row : rows) {
+            String value = row.get("Value");
+            stepDefinitionActions.userSelectsButtonByText(value);
+        }
+    }
+
+    @When("the user adds an invalid granting authority")
+    public void theUserAddsAnInvalidGrantingAuthority() throws InterruptedException {
+        stepDefinitionActions.userSelectsButtonByText("Add a new public authority");
+        stepDefinitionActions.isCorrectPageDisplayed("Add Public Authority page");
+        stepDefinitionActions.userInputsDataIntoTextField("", "public authority name");
+        stepDefinitionActions.userSelectsButtonByText("Continue");
+    }
+
+    @And("the user adds an inactive granting authority")
+    public void theUserAddsAnInactiveGrantingAuthority() throws InterruptedException {
+        stepDefinitionActions.userSelectsButtonByText("Add a new public authority");
+        stepDefinitionActions.isCorrectPageDisplayed("Add Public Authority page");
+        stepDefinitionActions.userInputsDataIntoTextField(ScenarioContext.getContext("inactive public authority"), "public authority name");
+        stepDefinitionActions.userSelectsButtonByText("Continue");
+        stepDefinitionActions.userSelectsButtonByText("Save");
+    }
+
+    @And("the user adds a duplicate granting authority")
+    public void theUserAddsADuplicateGrantingAuthority() throws InterruptedException {
+        stepDefinitionActions.userSelectsButtonByText("Add a new public authority");
+        stepDefinitionActions.isCorrectPageDisplayed("Add Public Authority page");
+        stepDefinitionActions.userInputsDataIntoTextField(ScenarioContext.getContext("public authority name"), "public authority name");
+        stepDefinitionActions.userSelectsButtonByText("Continue");
+        stepDefinitionActions.userSelectsButtonByText("Save");
+    }
+
 }

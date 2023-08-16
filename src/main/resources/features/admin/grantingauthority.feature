@@ -3,16 +3,13 @@
 Feature: Admin Portal - testing the different components of the 'Public authorities' (Granting authorities) feature
 
   Background:
-    Given the user logs in as 'BEIS Admin'
+    Given the user logs in as 'BEIS Admin' successfully
     And the user clicks 'Public Authorities' navigation link
-    Then the 'Public Authority page' page should be displayed
 
   Scenario: Create new public authority (TC_001)
-    When the user selects 'Add a new public authority' button
-    And the user inputs a valid 'public authority name' into text field 'Public authority name'
-    And the user selects 'Continue' button
+    When the user selects to add a new public authority
     And the user selects 'Save' button
-    Then the 'Public authority added successfully page' page should be displayed
+    Then the 'Public authority added' success page should be displayed
 
   Scenario: Create and edit new public authority (TC_002)
     When the user selects to add a new public authority
@@ -21,7 +18,7 @@ Feature: Admin Portal - testing the different components of the 'Public authorit
     And the user selects 'No' button
     And the user selects 'Cancel' button
     And the user selects 'Yes' button
-    Then the 'Public Authority page' page should be displayed
+    Then the 'Public Authorities' page should be displayed
 
   Scenario: Deactivate public authority (create a test user to deactivate) (TC_003)
     When the user selects to add a new public authority
@@ -123,13 +120,20 @@ Feature: Admin Portal - testing the different components of the 'Public authorit
     Then the tables results are ordered in 'descending' order by 'Last modified' column name
 
   Scenario: Adding granting authority invalid error validation
-    When the user adds an 'invalid' granting authority
+    When the user adds an invalid granting authority
     Then the user should be presented with a 'Enter a public authority name' error
 
   Scenario: Adding granting authority inactive error validation
-    When the user adds an 'inactive' granting authority
+    When the user selects to add a new public authority
+    And the user selects 'Save' button
+    And the user selects 'View all public authorities' button
+    And the user deactivates the public authority
+    And the user adds an inactive granting authority
     Then the user should be presented with a 'Public Authority already added' error
 
   Scenario: Adding granting authority duplicate error validation
-    When the user adds an 'duplicate' granting authority
+    When the user selects to add a new public authority
+    And the user selects 'Save' button
+    And the user selects 'View all public authorities' button
+    And the user adds a duplicate granting authority
     Then the user should be presented with a 'Public Authority already added' error
